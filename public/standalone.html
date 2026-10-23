@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nusantara Beauty Solution - Skincare Makloon Sample Tracker (Bridging Marketing & R&D)</title>
+  <link rel="icon" type="image/png" href="/assets/aistudio/nusantara_emblem_clean.png" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            rosepink: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              200: '#fecdd3',
+              400: '#fb7185',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-pink-50/40 text-slate-800 antialiased font-sans selection:bg-pink-200 min-h-screen flex flex-col">
+
+  <!-- ========================================================================= -->
+  <!-- HEADER & ROLE SWITCHER -->
+  <!-- ========================================================================= -->
+  <header class="bg-white border-b border-pink-100 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20 gap-4">
+        
+        <!-- Brand Logo (Nusantara Beauty Solution) -->
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-white border border-pink-200/80 p-1 flex items-center justify-center shadow-xs overflow-hidden">
+            <img src="/assets/aistudio/nusantara_emblem_clean.png" alt="Nusantara Beauty Solution" class="w-full h-full object-contain" />
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-base sm:text-lg font-extrabold tracking-wider text-slate-900 uppercase">
+                NUSANTARA
+              </span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 border border-pink-200/50">
+                Makloon Skincare
+              </span>
+            </div>
+            <p class="text-[10px] sm:text-[11px] font-semibold tracking-widest text-pink-700 uppercase -mt-0.5">
+              Beauty Solution
+            </p>
+          </div>
+        </div>
+
+        <!-- Role Switcher (Sakelar Peran) -->
+        <div class="bg-pink-50/80 p-1 rounded-xl border border-pink-200/80 flex items-center shadow-inner">
+          <button id="btnRoleMarketing" onclick="setRole('MARKETING')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all bg-white text-pink-700 shadow-xs border border-pink-200">
+            <span>Mode Marketing</span>
+          </button>
+          <button id="btnRoleRnd" onclick="setRole('RND')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+            <span>Mode R&D Lab</span>
+          </button>
+        </div>
+
+        <!-- Right Quick Actions -->
+        <div class="flex items-center gap-2">
+          <button id="btnNewSample" onclick="openMarketingModal()" class="flex items-center gap-1.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-xs transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <span class="hidden sm:inline">Ajukan Sampel Baru</span>
+            <span class="sm:hidden">SPK Baru</span>
+          </button>
+
+          <button onclick="StorageService.resetToInitialDummy(); renderUI();" title="Reset ke 3 Data Dummy" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-pink-50 rounded-xl transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Role Access Indicator Bar -->
+      <div id="roleNoticeBar" class="py-1.5 border-t border-pink-50 text-[11px] text-slate-500 flex items-center justify-between">
+        <span id="roleNoticeText">
+          <strong class="text-pink-700">Mode Marketing Aktif:</strong> Anda dapat mengajukan SPK, update pengiriman, dan input feedback customer. Formulasi rahasia R&D diproteksi.
+        </span>
+        <span class="text-slate-400 hidden md:inline">Storage: LocalStorage (Siap Migrasi PHP MySQL)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN WORKSPACE VIEWPORT -->
+  <!-- ========================================================================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+    
+    <!-- Workflow Metrics Counter -->
+    <div id="statsContainer" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+      <!-- Injected by renderStats() -->
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="bg-white rounded-2xl border border-pink-100 p-4 mb-6 shadow-2xs">
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <input
+            id="searchInput"
+            type="text"
+            oninput="handleSearch(this.value)"
+            placeholder="Cari No. SPK, nama produk, client/brand..."
+            class="w-full pl-4 pr-4 py-2 text-xs sm:text-sm bg-pink-50/30 border border-pink-200/80 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-pink-400/40 text-slate-800"
+          />
+        </div>
+
+        <!-- Filter Dropdowns -->
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+          <select id="statusFilter" onchange="handleFilterStatus(this.value)" class="text-xs bg-white border border-pink-200 rounded-xl px-3 py-2 text-slate-700">
+            <option value="ALL">Semua Alur Status</option>
+            <option value="PENDING_RND">Tahap 2: Pending R&D</option>
+            <option value="FORMULATING">Tahap 3: Formulasi Lab</option>
+            <option value="SAMPLE_READY">Tahap 3: Sampel Ready</option>
+            <option value="RECEIVED_MARKETING">Tahap 4: Diterima Marketing</option>
+            <option value="SENT_TO_CUSTOMER">Tahap 5: Kirim Customer</option>
+            <option value="REVISION_NEEDED">Tahap 6: Butuh Revisi</option>
+            <option value="APPROVED">Tahap 6: Approved Client</option>
+          </select>
+
+          <select id="testFilter" onchange="handleFilterTest(this.value)" class="text-xs bg-white border border-pink-200 rounded-xl px-3 py-2 text-slate-700">
+            <option value="ALL">Filter Status Uji (Semua)</option>
+            <option value="STABILITY_PASS">Stabilitas: Lolos Uji</option>
+            <option value="STABILITY_MONITORING">Stabilitas: Dalam Pantauan</option>
+            <option value="MICRO_PASS">Mikro: Pass (Bebas Cemaran)</option>
+            <option value="MICRO_TESTING">Mikro: Testing in Incubator</option>
+          </select>
+
+          <span id="filteredCounter" class="text-xs text-slate-400 pl-2 whitespace-nowrap">0 sampel</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Data Table Container -->
+    <div id="tableWrapper" class="bg-white rounded-2xl border border-pink-100 overflow-hidden shadow-xs">
+      <!-- Injected by renderTable() -->
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 1: FORM PENGAJUAN SAMPEL (TAHAP 1 MARKETING) -->
+  <!-- ========================================================================= -->
+  <div id="modalMarketing" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-pink-200 w-full max-w-2xl overflow-hidden shadow-2xl">
+      <div class="bg-gradient-to-r from-pink-500 to-rose-400 p-6 text-white flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-pink-100">Tahap 1: Pengajuan Sampel Baru</span>
+          <h2 class="text-lg font-bold">Brief Makloon ke Tim R&D</h2>
+        </div>
+        <button onclick="closeModal('modalMarketing')" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white">✕</button>
+      </div>
+
+      <form id="formMarketing" onsubmit="submitMarketingForm(event)" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">No. SPK (Auto)</label>
+            <input id="mkSpk" type="text" required class="w-full font-mono bg-pink-50/50 border border-pink-200 rounded-xl px-3 py-2 text-pink-900 font-semibold" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tanggal Pengajuan</label>
+            <input id="mkDate" type="date" required class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nama Marketing (PIC)</label>
+            <input id="mkPic" type="text" required value="Siti Rahma" class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nama Customer / Brand</label>
+            <input id="mkClient" type="text" required placeholder="Contoh: PT Glow Dermaceutic" class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nama Produk Skincare</label>
+            <input id="mkProduct" type="text" required placeholder="Contoh: Brightening Serum" class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Target COGS per Unit</label>
+            <input id="mkCogs" type="text" required value="Rp 25.000 / unit" class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Quantity Sampel</label>
+            <input id="mkQty" type="text" required value="2 pcs @ 50 ml" class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+
+        <div class="bg-pink-50/50 rounded-2xl p-4 border border-pink-100">
+          <span class="block font-bold text-pink-800 uppercase tracking-wider mb-2">Organoleptis Diminta:</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-600 mb-1">Warna</label>
+              <input id="mkColor" type="text" required value="Bening opal" class="w-full bg-white border border-pink-200 rounded-lg px-2.5 py-1.5" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-600 mb-1">Tekstur</label>
+              <input id="mkTexture" type="text" required value="Watery Gel Serum" class="w-full bg-white border border-pink-200 rounded-lg px-2.5 py-1.5" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-600 mb-1">Aroma</label>
+              <input id="mkScent" type="text" required value="Fresh White Tea" class="w-full bg-white border border-pink-200 rounded-lg px-2.5 py-1.5" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Request Tambahan / Bahan Aktif Khusus</label>
+          <textarea id="mkNotes" rows="2" class="w-full border border-pink-200 rounded-xl p-2.5" placeholder="Contoh: Minta Niacinamide 5% & Centella Asiatica, no alcohol & paraben."></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-pink-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modalMarketing')" class="px-4 py-2 text-slate-600">Batal</button>
+          <button type="submit" class="px-5 py-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-xl">Kirim Brief ke R&D</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 2: FORMULASI & UJI LAB R&D (TAHAP 3 R&D) -->
+  <!-- ========================================================================= -->
+  <div id="modalRnd" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-pink-200 w-full max-w-2xl overflow-hidden shadow-2xl">
+      <div class="bg-gradient-to-r from-pink-600 to-rose-600 p-6 text-white flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-pink-100">Tahap 3: Khusus Tim R&D Formulasi Lab</span>
+          <h2 id="rndModalTitle" class="text-lg font-bold">Input Formulasi & Uji Lab</h2>
+        </div>
+        <button onclick="closeModal('modalRnd')" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white">✕</button>
+      </div>
+
+      <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto text-xs">
+        <input type="hidden" id="rndSampleId" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Formulator R&D (PIC)</label>
+            <input id="rndPic" type="text" class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tanggal Sampel Jadi</label>
+            <input id="rndReadyDate" type="date" class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Formulasi Sampel Produk (Komposisi Bahan Baku Utama & Takaran)</label>
+          <textarea id="rndFormula" rows="3" class="w-full font-mono border border-pink-200 rounded-xl p-2.5" placeholder="Contoh: Aqua (82%), Ethyl Ascorbic Acid (1.5%), Niacinamide (3.5%), Glycerin (4%)..."></textarea>
+          <span class="text-[10px] text-slate-400">Dirahasiakan dari Tim Marketing.</span>
+        </div>
+
+        <!-- Replacement Ingredient Highlight -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+          <label class="block font-bold text-amber-900 mb-1">Catatan R&D / Bahan Pengganti (Replacement):</label>
+          <textarea id="rndReplacement" rows="2" class="w-full bg-white border border-amber-300 rounded-xl p-2" placeholder="Contoh: Stok Niacinamide kosong, disubstitusi Ethyl Ascorbic Acid / SymWhite 377 yang setara."></textarea>
+        </div>
+
+        <!-- Organoleptis Fix Realisasi -->
+        <div class="bg-pink-50/50 rounded-2xl p-4 border border-pink-100">
+          <span class="block font-bold text-pink-800 uppercase tracking-wider mb-2">Organoleptis Sampel Fix (Realisasi Lab):</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-600 mb-1">Warna Fix</label>
+              <input id="rndFixedColor" type="text" class="w-full bg-white border border-pink-200 rounded-lg px-2.5 py-1.5" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-600 mb-1">Tekstur Fix</label>
+              <input id="rndFixedTexture" type="text" class="w-full bg-white border border-pink-200 rounded-lg px-2.5 py-1.5" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-600 mb-1">Aroma Fix</label>
+              <input id="rndFixedScent" type="text" class="w-full bg-white border border-pink-200 rounded-lg px-2.5 py-1.5" />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Status Uji Stabilitas</label>
+            <select id="rndStability" class="w-full border border-pink-200 rounded-xl px-3 py-2 font-medium">
+              <option value="Lolos Uji">Lolos Uji</option>
+              <option value="Dalam Pantauan Accelerated Test">Dalam Pantauan Accelerated Test</option>
+              <option value="Uji Ulang Suhu Ruang">Uji Ulang Suhu Ruang</option>
+              <option value="Belum Diuji">Belum Diuji</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Status Uji Mikro</label>
+            <select id="rndMicro" class="w-full border border-pink-200 rounded-xl px-3 py-2 font-medium">
+              <option value="Pass (Bebas Cemaran)">Pass (Bebas Cemaran)</option>
+              <option value="Testing in Incubator">Testing in Incubator</option>
+              <option value="Pending Lab">Pending Lab</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-pink-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modalRnd')" class="px-4 py-2 text-slate-600">Batal</button>
+          <button type="button" onclick="saveRndForm(false)" class="px-4 py-2 border border-pink-300 text-pink-700 rounded-xl">Simpan Draf</button>
+          <button type="button" onclick="saveRndForm(true)" class="px-5 py-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-xl">Tandai Sampel Ready</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 3: PENGIRIMAN & FEEDBACK REVISI -->
+  <!-- ========================================================================= -->
+  <div id="modalAction" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-pink-200 w-full max-w-lg overflow-hidden shadow-2xl">
+      <div id="actionModalHeader" class="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white flex items-center justify-between">
+        <div>
+          <span id="actionModalSubtitle" class="text-[11px] font-bold uppercase tracking-wider text-pink-100">Tahap 5</span>
+          <h2 id="actionModalTitle" class="text-lg font-bold">Kirim Sampel Customer</h2>
+        </div>
+        <button onclick="closeModal('modalAction')" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white">✕</button>
+      </div>
+
+      <div id="actionModalBody" class="p-6 space-y-4 text-xs">
+        <!-- Injected dynamically based on action: Ship or Feedback -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: DATA ACCESS LAYER (DAL) + UI LAYER -->
+  <!-- ========================================================================= -->
+  <script>
+    /**
+     * =========================================================================
+     * 1. DATA ACCESS LAYER: StorageService
+     * =========================================================================
+     * CATATAN UNTUK HOSTINGER PHP / MYSQL:
+     * Ganti blok localStorage pada masing-masing method di bawah dengan fetch():
+     * fetch('api_sample.php?action=...')
+     */
+    const STORAGE_KEY = 'makloon_skincare_samples_standalone';
+
+    const INITIAL_DUMMIES = [
+      {
+        id: 'SMP-202610-001',
+        spkNumber: 'SPK-RND/2026/10/001',
+        submissionDate: '2026-10-18',
+        marketingName: 'Siti Rahma',
+        clientName: 'PT Glow Dermaceutic Indonesia',
+        productName: 'Glass Skin Brightening Face Serum 30ml',
+        targetCogs: 'Rp 22.500 / 30ml',
+        revisionCount: 0,
+        sampleQty: '3 pcs @ 30 ml',
+        requestedOrganoleptic: {
+          color: 'Bening sedikit opalescent',
+          texture: 'Lightweight watery gel, non-tacky finish',
+          scent: 'Subtle fresh white tea'
+        },
+        marketingNotes: 'Fokus mencerahkan & melembabkan. Wajib include Niacinamide 5% & Centella Asiatica.',
+        status: 'SAMPLE_READY',
+        rndFormulation: 'Aqua Demineralisata (82.5%), Ethyl Ascorbic Acid / SymWhite 377 (1.5%), Niacinamide (3.5%), Centella Asiatica 10x (2.0%), Hyaluronic Acid 4D (1.2%), Glycerin (4.0%), Preservative Eco (0.8%).',
+        rndReplacementNotes: 'Stok Niacinamide 5% di warehouse menipis, disubstitusi Ethyl Ascorbic Acid + SymWhite 377 dengan efikasi setara.',
+        sampleReadyDate: '2026-10-21',
+        fixedOrganoleptic: {
+          color: 'Bening jernih kristal',
+          texture: 'Water-burst gel serum, kering dalam 20 detik',
+          scent: 'Fresh tea lembut'
+        },
+        stabilityStatus: 'Lolos Uji',
+        microTestStatus: 'Pass (Bebas Cemaran)',
+        rndPicName: 'Apt. Devi Lestari, S.Farm',
+        rndNotes: 'pH akhir formula: 5.4. Viskositas 2.800 cPs. Stabil di oven 45°C 72 jam.',
+        revisionHistory: []
+      },
+      {
+        id: 'SMP-202610-002',
+        spkNumber: 'SPK-RND/2026/10/002',
+        submissionDate: '2026-10-20',
+        marketingName: 'Budi Prasetyo',
+        clientName: 'Aura Belle Botanicals',
+        productName: 'Ceramide Barrier Recovery Melt Cream 50g',
+        targetCogs: 'Rp 28.000 / 50g',
+        revisionCount: 1,
+        sampleQty: '2 pot @ 50 gram',
+        requestedOrganoleptic: {
+          color: 'Soft pastel pinkish cream',
+          texture: 'Velvet melting butter cream',
+          scent: 'Natural Bulgarian rose'
+        },
+        marketingNotes: 'Fokus skin barrier. 5x Ceramide Complex + Panthenol 2%.',
+        status: 'FORMULATING',
+        rndFormulation: 'Water, Caprylic/Capric Triglyceride (8%), Shea Butter (4%), Ceramide NP/AP/EOP (3%), Panthenol (2%), Vit B12 (0.01% pink color), Preservative Eco (1%).',
+        rndReplacementNotes: 'Warna pink diperoleh dari Cyanocobalamin (Vitamin B12 0.01%) untuk menghindari pewarna sintetik.',
+        sampleReadyDate: '',
+        fixedOrganoleptic: {
+          color: 'Soft pastel pink cerah alami',
+          texture: 'Rich cream emulsi O/W leleh dingin',
+          scent: 'Mawar damascena lembut'
+        },
+        stabilityStatus: 'Dalam Pantauan Accelerated Test',
+        microTestStatus: 'Testing in Incubator',
+        rndPicName: 'Drs. Hendra Kusuma',
+        rndNotes: 'Revisi ke-1: Mengurangi fraksi shea butter agar tekstur cepat menyerap.',
+        revisionHistory: [
+          {
+            revisionNumber: 0,
+            date: '2026-10-15',
+            feedback: 'Tekstur formula awal terlalu tebal berminyak. Customer minta sensasi meleleh lebih ringan.'
+          }
+        ]
+      },
+      {
+        id: 'SMP-202610-003',
+        spkNumber: 'SPK-RND/2026/10/003',
+        submissionDate: '2026-10-22',
+        marketingName: 'Dina Anggraini',
+        clientName: 'Nusantara Glow Essentials',
+        productName: 'Clarifying BHA 2% Salicylic Toner',
+        targetCogs: 'Rp 18.000 / 100ml',
+        revisionCount: 0,
+        sampleQty: '2 botol @ 100 ml',
+        requestedOrganoleptic: {
+          color: 'Bening transparan',
+          texture: 'Liquid essence toner',
+          scent: 'Unscented (No Fragrance)'
+        },
+        marketingNotes: 'Toner eksfoliasi jerawat target pH 3.8 - 4.2.',
+        status: 'PENDING_RND',
+        rndFormulation: '',
+        rndReplacementNotes: '',
+        stabilityStatus: 'Belum Diuji',
+        microTestStatus: 'Pending Lab',
+        revisionHistory: []
+      }
+    ];
+
+    const StorageService = {
+      // 1. Ambil data sampel
+      // Ganti dengan: const res = await fetch('api_sample.php?action=get_all'); return await res.json();
+      getSamples() {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (!data) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DUMMIES));
+          return INITIAL_DUMMIES;
+        }
+        try {
+          return JSON.parse(data);
+        } catch(e) {
+          return INITIAL_DUMMIES;
+        }
+      },
+
+      // 2. Simpan sampel baru
+      // Ganti dengan: return await fetch('api_sample.php?action=create', { method: 'POST', body: JSON.stringify(item) });
+      addSample(item) {
+        const samples = this.getSamples();
+        const now = new Date().toISOString();
+        const newId = 'SMP-' + Date.now();
+        const newObj = { ...item, id: newId, createdAt: now, updatedAt: now };
+        samples.unshift(newObj);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(samples));
+        return newObj;
+      },
+
+      // 3. Update data sampel
+      // Ganti dengan: return await fetch('api_sample.php?action=update&id=' + id, { method: 'PUT', body: JSON.stringify(patch) });
+      updateSample(id, patch) {
+        const samples = this.getSamples();
+        const idx = samples.findIndex(s => s.id === id);
+        if (idx === -1) return null;
+        samples[idx] = { ...samples[idx], ...patch, updatedAt: new Date().toISOString() };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(samples));
+        return samples[idx];
+      },
+
+      // 4. Hapus sampel
+      deleteSample(id) {
+        const samples = this.getSamples();
+        const filtered = samples.filter(s => s.id !== id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+        return true;
+      },
+
+      resetToInitialDummy() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DUMMIES));
+        return INITIAL_DUMMIES;
+      },
+
+      generateNextSpk() {
+        const samples = this.getSamples();
+        const year = new Date().getFullYear();
+        const month = String(new Date().getMonth() + 1).padStart(2, '0');
+        const prefix = 'SPK-RND/' + year + '/' + month + '/';
+        let maxSeq = 0;
+        samples.forEach(s => {
+          if (s.spkNumber && s.spkNumber.startsWith(prefix)) {
+            const num = parseInt(s.spkNumber.slice(prefix.length), 10);
+            if (!isNaN(num) && num > maxSeq) maxSeq = num;
+          }
+        });
+        return prefix + String(maxSeq + 1).padStart(3, '0');
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 2. STATE & UI CONTROLLER
+     * =========================================================================
+     */
+    let currentRole = 'MARKETING';
+    let searchQuery = '';
+    let statusFilter = 'ALL';
+    let testFilter = 'ALL';
+
+    function setRole(role) {
+      currentRole = role;
+      const btnMk = document.getElementById('btnRoleMarketing');
+      const btnRnd = document.getElementById('btnRoleRnd');
+      const noticeText = document.getElementById('roleNoticeText');
+      const btnNew = document.getElementById('btnNewSample');
+
+      if (role === 'MARKETING') {
+        btnMk.className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-pink-700 shadow-xs border border-pink-200';
+        btnRnd.className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900';
+        noticeText.innerHTML = '<strong class="text-pink-700">Mode Marketing Aktif:</strong> Anda dapat mengajukan SPK, update pengiriman, dan input feedback customer. Formulasi rahasia R&D diproteksi.';
+        btnNew.classList.remove('hidden');
+      } else {
+        btnRnd.className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-pink-600 text-white shadow-xs';
+        btnMk.className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900';
+        noticeText.innerHTML = '<strong class="text-pink-700">Mode R&D Lab Aktif:</strong> Hak akses penuh untuk mengelola formulasi bahan baku, catatan bahan pengganti, uji stabilitas & mikro.';
+        btnNew.classList.add('hidden');
+      }
+
+      renderUI();
+    }
+
+    function handleSearch(q) {
+      searchQuery = q.toLowerCase();
+      renderUI();
+    }
+
+    function handleFilterStatus(st) {
+      statusFilter = st;
+      renderUI();
+    }
+
+    function handleFilterTest(tf) {
+      testFilter = tf;
+      renderUI();
+    }
+
+    function getFilteredSamples() {
+      const all = StorageService.getSamples();
+      return all.filter(s => {
+        // Search
+        if (searchQuery) {
+          const text = (s.spkNumber + ' ' + s.clientName + ' ' + s.productName + ' ' + s.marketingName).toLowerCase();
+          if (!text.includes(searchQuery)) return false;
+        }
+        // Status Filter
+        if (statusFilter !== 'ALL' && s.status !== statusFilter) return false;
+        // Test Filter
+        if (testFilter === 'STABILITY_PASS' && s.stabilityStatus !== 'Lolos Uji') return false;
+        if (testFilter === 'STABILITY_MONITORING' && s.stabilityStatus !== 'Dalam Pantauan Accelerated Test') return false;
+        if (testFilter === 'MICRO_PASS' && s.microTestStatus !== 'Pass (Bebas Cemaran)') return false;
+        if (testFilter === 'MICRO_TESTING' && s.microTestStatus !== 'Testing in Incubator') return false;
+
+        return true;
+      });
+    }
+
+    function renderStats() {
+      const samples = StorageService.getSamples();
+      const total = samples.length;
+      const pendingRnd = samples.filter(s => s.status === 'PENDING_RND').length;
+      const formulating = samples.filter(s => s.status === 'FORMULATING').length;
+      const readyOrSent = samples.filter(s => s.status === 'SAMPLE_READY' || s.status === 'RECEIVED_MARKETING' || s.status === 'SENT_TO_CUSTOMER').length;
+      const revisions = samples.filter(s => s.status === 'REVISION_NEEDED').length;
+      const approved = samples.filter(s => s.status === 'APPROVED').length;
+
+      const items = [
+        { label: 'Total Sampel', count: total },
+        { label: 'Antrean Brief R&D', count: pendingRnd },
+        { label: 'Formulasi Lab R&D', count: formulating },
+        { label: 'Siap / Terkirim', count: readyOrSent },
+        { label: 'Siklus Revisi', count: revisions },
+        { label: 'Approved Client', count: approved }
+      ];
+
+      document.getElementById('statsContainer').innerHTML = items.map(it => `
+        <div class="p-3.5 rounded-2xl border border-pink-100 bg-white text-left shadow-2xs">
+          <span class="text-[11px] font-medium text-slate-500 block truncate">${it.label}</span>
+          <div class="flex items-baseline gap-1 mt-1">
+            <span class="text-2xl font-bold tabular-nums text-slate-900">${it.count}</span>
+            <span class="text-[10px] text-slate-400">unit</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTable() {
+      const samples = getFilteredSamples();
+      document.getElementById('filteredCounter').innerText = samples.length + ' sampel ditemukan';
+
+      if (samples.length === 0) {
+        document.getElementById('tableWrapper').innerHTML = `
+          <div class="p-10 text-center text-slate-500 text-xs">
+            Tidak ada sampel yang cocok dengan filter / pencarian.
+          </div>
+        `;
+        return;
+      }
+
+      let rowsHtml = samples.map(s => {
+        const isRev = s.revisionCount > 0;
+        
+        // Status Badge
+        let badgeHtml = '';
+        if (s.status === 'PENDING_RND') badgeHtml = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">Antrean R&D</span>';
+        else if (s.status === 'FORMULATING') badgeHtml = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-pink-50 text-pink-700 border border-pink-200">Dalam Formulasi</span>';
+        else if (s.status === 'SAMPLE_READY') badgeHtml = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">Sampel Ready R&D</span>';
+        else if (s.status === 'RECEIVED_MARKETING') badgeHtml = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-teal-50 text-teal-700 border border-teal-200">Diterima Marketing</span>';
+        else if (s.status === 'SENT_TO_CUSTOMER') badgeHtml = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">Kirim Customer</span>';
+        else if (s.status === 'REVISION_NEEDED') badgeHtml = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">Revisi Ke-' + s.revisionCount + '</span>';
+        else if (s.status === 'APPROVED') badgeHtml = '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">Approved Client</span>';
+
+        // Action Buttons based on role
+        let actionBtnHtml = '';
+        if (currentRole === 'RND') {
+          actionBtnHtml = `
+            <button onclick="openRndModal('${s.id}')" class="px-2.5 py-1.5 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-xs font-semibold shadow-2xs">
+              Formulasi & Lab
+            </button>
+          `;
+        } else {
+          // Marketing Role
+          if (s.status === 'SAMPLE_READY') {
+            actionBtnHtml = `
+              <button onclick="quickReceiveMarketing('${s.id}')" class="px-2.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold shadow-2xs">
+                Terima Sampel
+              </button>
+            `;
+          } else if (s.status === 'RECEIVED_MARKETING') {
+            actionBtnHtml = `
+              <button onclick="openShipModal('${s.id}')" class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold shadow-2xs">
+                Kirim Customer
+              </button>
+            `;
+          } else if (s.status === 'SENT_TO_CUSTOMER') {
+            actionBtnHtml = `
+              <button onclick="openFeedbackModal('${s.id}')" class="px-2.5 py-1.5 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-xs font-semibold shadow-2xs">
+                Feedback / Revisi
+              </button>
+            `;
+          }
+        }
+
+        return `
+          <tr class="hover:bg-pink-50/20 transition-colors border-b border-pink-50 text-xs">
+            <td class="py-3 px-4 align-top">
+              <div class="font-mono font-semibold text-slate-900">${s.spkNumber} ${isRev ? '<span class="text-rose-600 font-bold">R'+s.revisionCount+'</span>' : ''}</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">${s.submissionDate}</div>
+              <div class="text-[11px] text-pink-700 font-medium">PIC: ${s.marketingName}</div>
+            </td>
+            <td class="py-3 px-4 align-top">
+              <div class="font-semibold text-slate-900">${s.productName}</div>
+              <div class="text-[11px] text-slate-500">${s.clientName}</div>
+              ${s.marketingNotes ? '<div class="text-[11px] text-slate-400 line-clamp-1 italic mt-0.5">"'+s.marketingNotes+'"</div>' : ''}
+            </td>
+            <td class="py-3 px-4 align-top whitespace-nowrap">
+              <div class="font-semibold text-pink-700">${s.targetCogs}</div>
+              <div class="text-[11px] text-slate-500">${s.sampleQty}</div>
+            </td>
+            <td class="py-3 px-4 align-top">
+              <div class="text-[11px] text-slate-600"><strong>Warna:</strong> ${s.requestedOrganoleptic.color}</div>
+              <div class="text-[11px] text-slate-600"><strong>Tekstur:</strong> ${s.requestedOrganoleptic.texture}</div>
+              <div class="text-[11px] text-slate-600"><strong>Aroma:</strong> ${s.requestedOrganoleptic.scent}</div>
+            </td>
+            <td class="py-3 px-4 align-top whitespace-nowrap">
+              <div>${badgeHtml}</div>
+              ${s.customerSentDate ? '<div class="text-[10px] text-slate-400 mt-1">Kirim: '+s.customerSentDate+'</div>' : ''}
+            </td>
+            <td class="py-3 px-4 align-top whitespace-nowrap">
+              <div class="text-[11px]"><strong>Stabilitas:</strong> ${s.stabilityStatus}</div>
+              <div class="text-[11px]"><strong>Mikro:</strong> ${s.microTestStatus}</div>
+              ${currentRole === 'MARKETING' ? '<div class="text-[10px] text-slate-400">🔒 Formula dirahasiakan</div>' : ''}
+            </td>
+            <td class="py-3 px-4 align-top text-right whitespace-nowrap">
+              <div class="flex items-center justify-end gap-1.5">
+                ${actionBtnHtml}
+                <button onclick="printSpk('${s.id}')" class="p-1.5 text-slate-400 hover:text-pink-600">🖨</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('tableWrapper').innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-pink-50/50 border-b border-pink-100 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                <th class="py-3 px-4">No. SPK & Tgl</th>
+                <th class="py-3 px-4">Customer & Produk</th>
+                <th class="py-3 px-4">Target COGS</th>
+                <th class="py-3 px-4">Organoleptis Req</th>
+                <th class="py-3 px-4">Status Alur</th>
+                <th class="py-3 px-4">Uji Lab</th>
+                <th class="py-3 px-4 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderUI() {
+      renderStats();
+      renderTable();
+    }
+
+    // Modal Control Helpers
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // Marketing New Sample Modal
+    function openMarketingModal() {
+      document.getElementById('mkSpk').value = StorageService.generateNextSpk();
+      document.getElementById('mkDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('mkClient').value = '';
+      document.getElementById('mkProduct').value = '';
+      document.getElementById('mkNotes').value = '';
+      openModal('modalMarketing');
+    }
+
+    function submitMarketingForm(e) {
+      e.preventDefault();
+      const item = {
+        spkNumber: document.getElementById('mkSpk').value,
+        submissionDate: document.getElementById('mkDate').value,
+        marketingName: document.getElementById('mkPic').value,
+        clientName: document.getElementById('mkClient').value,
+        productName: document.getElementById('mkProduct').value,
+        targetCogs: document.getElementById('mkCogs').value,
+        revisionCount: 0,
+        sampleQty: document.getElementById('mkQty').value,
+        requestedOrganoleptic: {
+          color: document.getElementById('mkColor').value,
+          texture: document.getElementById('mkTexture').value,
+          scent: document.getElementById('mkScent').value
+        },
+        marketingNotes: document.getElementById('mkNotes').value,
+        status: 'PENDING_RND',
+        stabilityStatus: 'Belum Diuji',
+        microTestStatus: 'Pending Lab',
+        revisionHistory: []
+      };
+      StorageService.addSample(item);
+      closeModal('modalMarketing');
+      renderUI();
+    }
+
+    // R&D Lab Modal
+    function openRndModal(id) {
+      const sample = StorageService.getSamples().find(s => s.id === id);
+      if (!sample) return;
+
+      document.getElementById('rndSampleId').value = sample.id;
+      document.getElementById('rndModalTitle').innerText = 'Input Formulasi & Lab (' + sample.spkNumber + ')';
+      document.getElementById('rndPic').value = sample.rndPicName || 'Apt. Devi Lestari, S.Farm';
+      document.getElementById('rndReadyDate').value = sample.sampleReadyDate || new Date().toISOString().split('T')[0];
+      document.getElementById('rndFormula').value = sample.rndFormulation || '';
+      document.getElementById('rndReplacement').value = sample.rndReplacementNotes || '';
+      document.getElementById('rndFixedColor').value = sample.fixedOrganoleptic?.color || sample.requestedOrganoleptic.color;
+      document.getElementById('rndFixedTexture').value = sample.fixedOrganoleptic?.texture || sample.requestedOrganoleptic.texture;
+      document.getElementById('rndFixedScent').value = sample.fixedOrganoleptic?.scent || sample.requestedOrganoleptic.scent;
+      document.getElementById('rndStability').value = sample.stabilityStatus || 'Lolos Uji';
+      document.getElementById('rndMicro').value = sample.microTestStatus || 'Pass (Bebas Cemaran)';
+      
+      openModal('modalRnd');
+    }
+
+    function saveRndForm(markReady) {
+      const id = document.getElementById('rndSampleId').value;
+      const patch = {
+        rndPicName: document.getElementById('rndPic').value,
+        sampleReadyDate: document.getElementById('rndReadyDate').value,
+        rndFormulation: document.getElementById('rndFormula').value,
+        rndReplacementNotes: document.getElementById('rndReplacement').value,
+        fixedOrganoleptic: {
+          color: document.getElementById('rndFixedColor').value,
+          texture: document.getElementById('rndFixedTexture').value,
+          scent: document.getElementById('rndFixedScent').value
+        },
+        stabilityStatus: document.getElementById('rndStability').value,
+        microTestStatus: document.getElementById('rndMicro').value,
+        status: markReady ? 'SAMPLE_READY' : 'FORMULATING'
+      };
+      StorageService.updateSample(id, patch);
+      closeModal('modalRnd');
+      renderUI();
+    }
+
+    // Fast Handover from R&D to Marketing
+    function quickReceiveMarketing(id) {
+      StorageService.updateSample(id, {
+        status: 'RECEIVED_MARKETING',
+        marketingReceivedDate: new Date().toISOString().split('T')[0],
+        marketingReceivedPic: 'Marketing Team'
+      });
+      renderUI();
+    }
+
+    // Modal Kirim ke Customer
+    function openShipModal(id) {
+      const sample = StorageService.getSamples().find(s => s.id === id);
+      if (!sample) return;
+
+      document.getElementById('actionModalHeader').className = 'bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white flex items-center justify-between';
+      document.getElementById('actionModalSubtitle').innerText = 'Tahap 5: Pengiriman Sampel';
+      document.getElementById('actionModalTitle').innerText = 'Kirim Sampel Customer';
+
+      document.getElementById('actionModalBody').innerHTML = `
+        <div class="bg-pink-50 p-3 rounded-xl border border-pink-100">
+          <strong>${sample.spkNumber}</strong> - ${sample.productName} (${sample.clientName})
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Tanggal Kirim Sampel</label>
+          <input id="shipDate" type="date" value="${new Date().toISOString().split('T')[0]}" class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Ekspedisi & Resi</label>
+          <input id="shipCourier" type="text" value="JNE Express - 0192837482" class="w-full border border-pink-200 rounded-xl px-3 py-2" />
+        </div>
+        <div class="pt-3 border-t flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modalAction')" class="px-4 py-2 text-slate-600">Batal</button>
+          <button type="button" onclick="submitShipping('${id}')" class="px-5 py-2 bg-purple-600 text-white font-semibold rounded-xl">Konfirmasi Kirim</button>
+        </div>
+      `;
+      openModal('modalAction');
+    }
+
+    function submitShipping(id) {
+      const date = document.getElementById('shipDate').value;
+      const courier = document.getElementById('shipCourier').value;
+      StorageService.updateSample(id, {
+        customerSentDate: date,
+        courierTracking: courier,
+        status: 'SENT_TO_CUSTOMER'
+      });
+      closeModal('modalAction');
+      renderUI();
+    }
+
+    // Modal Feedback & Revisi Customer
+    function openFeedbackModal(id) {
+      const sample = StorageService.getSamples().find(s => s.id === id);
+      if (!sample) return;
+
+      document.getElementById('actionModalHeader').className = 'bg-gradient-to-r from-rose-500 to-pink-500 p-6 text-white flex items-center justify-between';
+      document.getElementById('actionModalSubtitle').innerText = 'Tahap 6: Evaluasi Customer';
+      document.getElementById('actionModalTitle').innerText = 'Input Feedback & Revisi (' + sample.spkNumber + ')';
+
+      document.getElementById('actionModalBody').innerHTML = `
+        <div class="bg-pink-50 p-3 rounded-xl border border-pink-100">
+          <strong>${sample.productName}</strong> · Revisi Saat Ini: Ke-${sample.revisionCount}
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Keputusan Customer</label>
+          <select id="evalDecision" class="w-full border border-pink-200 rounded-xl px-3 py-2 font-bold">
+            <option value="REVISION">Butuh Revisi (Kembali ke Antrean R&D)</option>
+            <option value="APPROVED">Sampel Disetujui (Approved / Pra-Produksi)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Detail Catatan / Feedback Customer</label>
+          <textarea id="evalText" rows="3" class="w-full border border-pink-200 rounded-xl p-2.5" placeholder="Contoh: Tekstur terlalu lengket, aroma minta ditambah wangi lavender."></textarea>
+        </div>
+        <div class="pt-3 border-t flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modalAction')" class="px-4 py-2 text-slate-600">Batal</button>
+          <button type="button" onclick="submitFeedback('${id}')" class="px-5 py-2 bg-rose-600 text-white font-semibold rounded-xl">Simpan Evaluasi</button>
+        </div>
+      `;
+      openModal('modalAction');
+    }
+
+    function submitFeedback(id) {
+      const sample = StorageService.getSamples().find(s => s.id === id);
+      const decision = document.getElementById('evalDecision').value;
+      const feedbackText = document.getElementById('evalText').value;
+
+      if (decision === 'APPROVED') {
+        StorageService.updateSample(id, {
+          feedbackDate: new Date().toISOString().split('T')[0],
+          customerFeedback: '[APPROVED] ' + feedbackText,
+          status: 'APPROVED'
+        });
+      } else {
+        const nextRev = (sample.revisionCount || 0) + 1;
+        const newHistory = [...(sample.revisionHistory || []), {
+          revisionNumber: sample.revisionCount || 0,
+          date: new Date().toISOString().split('T')[0],
+          feedback: feedbackText
+        }];
+        StorageService.updateSample(id, {
+          revisionCount: nextRev,
+          feedbackDate: new Date().toISOString().split('T')[0],
+          customerFeedback: feedbackText,
+          revisionHistory: newHistory,
+          status: 'REVISION_NEEDED'
+        });
+      }
+      closeModal('modalAction');
+      renderUI();
+    }
+
+    // Print SPK Simple
+    function printSpk(id) {
+      const sample = StorageService.getSamples().find(s => s.id === id);
+      if (!sample) return;
+      window.print();
+    }
+
+    // Inisialisasi awal saat load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderUI();
+    });
+  </script>
+</body>
+</html>

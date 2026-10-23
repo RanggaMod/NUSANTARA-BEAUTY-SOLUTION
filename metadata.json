@@ -1,0 +1,8 @@
+{
+  "name": "Remix NUSANTARA BEAUTY SOLUTION",
+  "description": "Sistem bridging dan tracking sampel produk kosmetik \u0026 skincare antara Tim Marketing dan Tim R\u0026D dengan manajemen alur formulasi, uji stabilitas, dan siklus revisi customer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
